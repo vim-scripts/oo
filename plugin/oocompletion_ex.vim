@@ -20,69 +20,80 @@ endfunction
 
 
 function! s:GettypeName(var) " {{{2
-    let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","nb")
-    if l:ldefine > 0
+    let l:firsttime = 0
+    let l:firstpos = 0
+    let l:oldl= line('.')
+    let l:oldc= col('.')
+    let l:pattern = "\\<\\i\\+\\>[\\[\\]\\t\\* ]\\+\\<".a:var."\\>"
+    let l:ldefine=search(l:pattern,"b")
+    while l:ldefine > 0 
         let l:curr_line = getline(l:ldefine)
-        let l:col_index = match(l:curr_line,"\\<\\i\\+\\>\\s\\+\\<".a:var."\\>")
-        if matchend(synIDattr(synID(l:ldefine,l:col_index,1),"name"),"Comment")==-1
+        let l:col_index = match(l:curr_line,l:pattern)
+        if synIDattr(synID(l:ldefine,l:col_index,1),"name") == ""
             "let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","nb")
+            call cursor(l:oldl,l:oldc)
             return matchstr(l:curr_line,"\\<\\i\\+\\>",l:col_index)
         else
-            return ""
+            if ( l:firsttime == 0 )
+                let l:firsttime = 1
+                let l:firstpos = l:ldefine
+            else
+                if ( l:firstpos == l:ldefine)
+                    call cursor(l:oldl,l:oldc)
+                    return ""
+                endif
+            endif
+            let l:ldefine=search(l:pattern,"b")
+            "cursor(l:oldl,l:oldc)
+            "return ""
         endif
-    endif 
-
-    let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","n")
-    if l:ldefine > 0
-        let l:curr_line = getline(l:ldefine)
-        let l:col_index = match(l:curr_line,"\\<\\i\\+\\>\\s\\+\\<".a:var."\\>")
-        "echo l:ldefine." ".l:col_index
-        echo synIDattr(synID(l:ldefine,l:col_index,1),"name")
-        if matchend(synIDattr(synID(l:ldefine,l:col_index,1),"name"),"Comment")==-1
-            "let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","n")
-            return matchstr(l:curr_line,"\\<\\i\\+\\>",l:col_index)
-        else
-            return ""
-        endif
-    endif
+    endw
+"    let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","n")
+"    if l:ldefine > 0
+"        let l:curr_line = getline(l:ldefine)
+"        let l:col_index = match(l:curr_line,"\\<\\i\\+\\>\\s\\+\\<".a:var."\\>")
+"        "echo l:ldefine." ".l:col_index
+"        echo synIDattr(synID(l:ldefine,l:col_index,1),"name")
+"        if matchend(synIDattr(synID(l:ldefine,l:col_index,1),"name"),"Comment")==-1
+"            "let l:ldefine=search("\\<\\i\\+\\>\\s\\+\\<".a:var."\\>","n")
+"            return matchstr(l:curr_line,"\\<\\i\\+\\>",l:col_index)
+"        else
+"            return ""
+"        endif
+"    endif
+    call cursor(l:oldl,l:oldc)
     return ""
 endf 
 function! Oocompletefun(line,base,col,findstart) " {{{2
     "let var = matchstr(a:line,"\\w\\+$")
-    "echo 'line'.a:line."|\nbase".a:base."|\ncol".a:col."\ncyh\n"
+    "echo 'line'.a:line."|base".a:base."|col".a:col."\n"
 
-    let l:langmode=0
-    let s:str = matchstr(a:line.a:base,"\\w\\+\\.\\w*$")
-    if s:str == ""
-        let s:str =matchstr(a:line.a:base,"\\w\\+->\\w*$") 
-        let l:langmode=1
-    endif
-    if s:str != ""
-        let idx = stridx(s:str,".")
+    "let l:langmode=0
+    let s:str = a:line 
+    let s:beginning = a:base
+    "matchstr(a:line.a:base,"\\w\\+\\.\\w*$")
+    "
+    "if s:str == ""
+    "    let s:str =matchstr(a:line.a:base,"\\w\\+->\\w*$") 
+    "    let l:langmode=1
+    "endif
 
-        let l:var = strpart(s:str,0,idx)
-        let s:beginning=strpart(s:str,idx+1+l:langmode)
-        if l:var=="this"
-            let l:ldefine = search("^\\(\\<\\i\\+\\>\\s\\+\\)*\\<class\\>\\s\\+\\<\\i\\+\\>","nb")
-            if l:ldefine >0
-                let l:tmp= getline(l:ldefine) 
-                let l:index_def = match(l:tmp,"\\<class\\>")
-                let l:index_def = match(l:tmp,"\\<\\i\\+\\>",l:index_def+6)
-                let s:type=matchstr(l:tmp,"\\<\\i\\+\\>",l:index_def)
-            endif
+    let l:var = substitute(s:str,"^\\s*\\(\\i\\+\\)\\(\\.\\|::\\|->\\)","\\1","")
+    if l:var=="this"
+        let l:ldefine = search("^\\(\\<\\i\\+\\>\\s\\+\\)*\\<class\\>\\s\\+\\<\\i\\+\\>","nb")
+        if l:ldefine >0
+            let l:tmp= getline(l:ldefine) 
+            let l:index_def = match(l:tmp,"\\<class\\>")
+            let l:index_def = match(l:tmp,"\\<\\i\\+\\>",l:index_def+6)
+            let s:type=matchstr(l:tmp,"\\<\\i\\+\\>",l:index_def)
+        endif
+    else
+        if match(s:str,"::$")!= -1
+            let s:type = l:var
         else
             let s:type = s:GettypeName(l:var)
         endif
-    else
-        let s:str = matchstr(a:line.a:base,"\\w\\+::\\w*$")
-        let idx = stridx(s:str,"::")
-
-        let l:var = strpart(s:str,0,idx)
-        let s:beginning=strpart(s:str,idx+2)
-        let s:type = l:var
     endif
-
-
     let s:pre_beginning = "" 
     "strpart(a:line."|".a:base,0,strlen(a:line.a:base)-strlen(s:beginning)+1)
 
