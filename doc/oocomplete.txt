@@ -1,0 +1,41 @@
+*oocomplete.txt* Plugin for Java/? language 
+                 For Vim version 7.0
+								  *oocomplete* 
+
+	Comntents:
+		
+		Desc 			     |oo-desc|
+		Tags                         |oo-tags-gen|
+		command 		     |oo-cmd-def|
+		auto-completion	             |oo-auto-comp|
+
+								     *oo-desc*
+								 *oo-tags-gen*
+generate tags for this plugin >
+	:GenerateTags
+<
+Generate tags.idx, for a large tags file, use this one to search quickly. >
+	:ruby generateIndex("/usr/java/jdk/src/tags")
+
+<
+A file which is named /usr/java/jdk/src/tags.idx would be generated.
+This command is used for generate a index file of tags. 
+Before you do it , you must has the write access to  the directory.
+
+								  *oo-cmd-def*
+Setup custom completionfunc  >
+	:set cfu=Oocompelete
+<
+Once you input something like : >
+	String str;
+	str.to<CTRL>-X<CTRL>-U
+< and your *tags* is setup correctly. 
+
+								*oo-auto-comp*
+You can use the complete like this >
+	:Oofun String to
+>
+the result is toUpperCase....would be found.
+ Ctags (version 5.4 ) is used for generate the tags for this plugin
+===============================================================
+ vim:ts=8 sw=8 noexpandtab tw=78 ft=help:

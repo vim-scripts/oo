@@ -1,0 +1,40 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1204
+
+This plugin is used for Java code completion. It's depends on ctags , 
+vim which +ruby future is enabled.
+For generate tags :
+         ctags --fileds=+ai   .....
+For  generate tags Index file:
+         :ruby generateIndex("/usr/java/jdk/src/tags",2)
+The second parameter which value is 2  is recommand.
+
+Once you vim version is 7.00aa 
+         :set cfu=OocompleteFun
+You can use <CTRL>-x<CTRL>-u for this samle:
+        String str="";
+        str.to
+                ^<CTRL>-X<CTRL>-U
+For c++ user:
+         SomeClass * abc;
+         abc->So
+                        ^<CTRL>-X<CTRL>-U
+Both java and c++
+         Abc::So
+                        ^<CTRL>-X<CTRL>-U
+Then toByteArray, toUpperCase...  would be selectable.
+
+vim version is 6.xx
+         :Oofun String to
+First parameter is name of the class , the second is the function name ( partly)
+Then toByteArray, toUpperCase...  would be show in command window.
+
+One command is added, It's used to check variable type
+         :Ootype varname
+
+TODO list :
+         ctags's support for jdk1.5 , something incorrectly. like ,java.util.Vector
+         Advanced varible define selector. Something lik normal command gd
+
+         The last, my poor document  and my poor English, 
+
+
