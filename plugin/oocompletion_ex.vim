@@ -51,12 +51,17 @@ function! Oocompletefun(line,base,col,findstart) " {{{2
     "let var = matchstr(a:line,"\\w\\+$")
     "echo 'line'.a:line."|\nbase".a:base."|\ncol".a:col."\ncyh\n"
 
+    let l:langmode=0
     let s:str = matchstr(a:line.a:base,"\\w\\+\\.\\w*$")
+    if s:str == ""
+        let s:str =matchstr(a:line.a:base,"\\w\\+->\\w*$") 
+        let l:langmode=1
+    endif
     if s:str != ""
         let idx = stridx(s:str,".")
 
         let l:var = strpart(s:str,0,idx)
-        let s:beginning=strpart(s:str,idx+1)
+        let s:beginning=strpart(s:str,idx+1+l:langmode)
         if l:var=="this"
             let l:ldefine = search("^\\(\\<\\i\\+\\>\\s\\+\\)*\\<class\\>\\s\\+\\<\\i\\+\\>","nb")
             if l:ldefine >0
@@ -105,7 +110,7 @@ ruby<<EOF
 # puts "ruby invoked : " + Time.now.min.to_s + ":"+ Time.now.sec.to_s
 $keepAllInfo = false 
 taglist = TagList.new(VIM::evaluate("&tags"))
-taglist.listMethods(VIM::evaluate("s:type"), VIM::evaluate("s:beginning"))
+taglist.listMethods(VIM::evaluate("s:type"), VIM::evaluate("s:beginning"),1)
 str = taglist.methodsToLine()
 #taglist.putsMethods()
 VIM::command("let s:retstr=\""+str+"\"");
@@ -117,7 +122,7 @@ function! s:Oocomplete(type,beginning)
 ruby <<EOF
 $keepAllInfo = false 
 taglist = TagList.new(VIM::evaluate("&tags"))
-taglist.listMethods(VIM::evaluate("a:type"), VIM::evaluate("a:beginning"))
+taglist.listMethods(VIM::evaluate("a:type"), VIM::evaluate("a:beginning"),1)
 #str = taglist.methodsToLine()
 taglist.putsMethods()
 EOF
@@ -126,6 +131,7 @@ endf
 "command setup {{{2
 rubyf $VIM/vimfiles/plugin/oocompletion.rb
 command! -nargs=+ Oofun call <SID>Oocomplete(<f-args>)
+command! -nargs=1 Ootype echo s:GettypeName(<f-args>)  
 " ======================================================================
 " vim600: set fdm=marker:
 "

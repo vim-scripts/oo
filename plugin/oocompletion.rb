@@ -64,7 +64,7 @@ end
 
 
 def generateIndex(fileName,len=1)
-	index = 1
+	index = 0
 	latter=" "*len
 	f_tag = File.open(fileName)
 	f_idx = File.open(fileName+".idx","w")
@@ -182,10 +182,25 @@ class Tag
 		ctag_infos_base = ctag_infos[0].split("\t")
 	
 
+		if ( ctag_infos[1] == nil) 
+			return
+		end
 		ctag_infos_ext = ctag_infos[1].split("\t")
+
+
 		index = 2 # at 0 it's "", at 1 it's the tag type (c, m, f, ...)
 		while (ctag_infos_ext[index] != nil)
-			info = ctag_infos_ext[index].split(":")
+			info = [] #ctag_infos_ext[index].split(":")
+			infoindex = ctag_infos_ext[index].index(":")
+			return if infoindex == -1
+
+			info << ctag_infos_ext[index][0,infoindex]
+			info << ctag_infos_ext[index][infoindex+1,ctag_infos_ext[index].length]
+                        
+                        infoindex = info[1].index("::")
+                        if (infoindex != nil)
+                                info[1][0,infoindex+2]=""
+                        end
 			# possible optimisation: call chomp only
 			# if it's REALLY the last identifier of the line,
 			# not "just in case" like that.
@@ -313,11 +328,11 @@ class TagList
 		file.seek(seek)
 		# now we parse the ctags output
 		ctags_line = file.gets
-		#file.each_line { |ctags_line|
-		while ( ctags_line != nil) 
+		file.each_line { |ctags_line|
+		#while ( ctags_line != nil) 
                         #next 
 			if (ctags_line[0,2]== "!_")
-				ctags_line= file.gets
+				#ctags_line= file.gets
 				next
 			end
 			if ( ctags_line[0,beginning.length]>beginning)
@@ -325,21 +340,23 @@ class TagList
 			end	       
 
 			tag = Tag.getTagFromCtag(ctags_line, @matchingTags)
+			next if tag==nil 
+			#print tag.name,tag.className
 			if (tag.tagClass?())
 				if (tag.name == classSearchedName)
 					@classTags.push(tag)
 					break if firstonly
 				end
 			else if (!classonly)
-				if (tag.className == classSearchedName)
+				if (tag.className== classSearchedName)
 					@nonClassTags.push(tag)
 					break if firstonly
 				end
 			end
 			end
-			ctags_line = file.gets
-		#}
-		end
+			#ctags_line = file.gets
+		}
+		#end
 		file.close
 	end
 	
@@ -391,7 +408,7 @@ class TagList
 					|| (tag.access == "") \
 					|| (tag.access == "default") \
 					|| (tag.access == nil) ) )
-				puts tag.name + " [" + tag.className + "] "  
+				puts tag.name + " [" + tag.className + "] " 
 			end
 		}
 	end
@@ -422,7 +439,7 @@ class TagList
 		#if (VIM::evaluate("&verbose").to_i > 0)
 		#	puts "parsing tags for " + tagFile
 		#end
-		parseTags(tagFile,classSearchedName,beginning,firstonly)
+		parseTags(tagFile,classSearchedName,beginning,firstonly,classonly)
 		@matchingTags.concat(@nonClassTags)
 		@nonClassTags.clear()
 
@@ -475,7 +492,7 @@ end
 
 # puts "ruby invoked : " + Time.now.min.to_s + ":"+ Time.now.sec.to_s
 $keepAllInfo =false 
-#taglist = TagList.new("/tmp/tags,/usr/java/jdk/src/tags")
-#taglist.listMethods("TestB", "t",1)
+#taglist = TagList.new("/home/wangfc/workspace/smgpapp/tags,/tmp/tags,/usr/java/jdk/src/tags")
+#taglist.listMethods("MySQL", "Ex",1)
 #taglist.putsMethods()
 
